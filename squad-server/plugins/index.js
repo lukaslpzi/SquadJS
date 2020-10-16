@@ -8,6 +8,7 @@ import DiscordRcon from './discord-rcon.js';
 import DiscordSubsystemRestarter from './discord-subsystem-restarter.js';
 import IntervalledBroadcasts from './intervalled-broadcasts.js';
 import SeedingMode from './seeding-mode.js';
+import DiscordServerStatus from './discord-server-status.js';
 
 const plugins = [
   AutoTKWarn,
@@ -19,7 +20,8 @@ const plugins = [
   DiscordRcon,
   DiscordSubsystemRestarter,
   IntervalledBroadcasts,
-  SeedingMode
+  SeedingMode,
+  DiscordServerStatus
 ];
 
 const pluginsByName = {};

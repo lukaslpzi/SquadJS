@@ -18,6 +18,17 @@
   },
   "connectors": {
     "discord": "Discord Login Token",
+    "sqlite": {
+      "database": "",
+      "user": "",
+      "password": "",
+      "server": {
+        "host": "",
+        "dialect": "sqlite",
+        "logging": false,
+        "storage": "database.sqlite"
+      }
+    },
     "squadlayerpool": {
       "type": "buildPoolFromFilter",
       "filter": {
