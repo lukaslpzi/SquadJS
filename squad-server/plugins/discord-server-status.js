@@ -1,4 +1,6 @@
-import { MessageManager } from "discord.js";
+import { User } from "discord.js";
+import DataTypes from "sequelize";
+import SquadServer from "../index.js";
 import DiscordBasePlugin from "./discord-base-plugin.js"
 
 export default class DiscordServerStatus extends DiscordBasePlugin {
@@ -22,57 +24,136 @@ export default class DiscordServerStatus extends DiscordBasePlugin {
                 connector: 'databaseClient',
 
             },
-            channelID: {
-                required: true,
-                description: 'Discord channel name.',
-                default: null,
-                example: 123457890
+            interval: {
+                required: false,
+                description: 'Discord rebrodcast interval in seconds',
+                default: 300
             }
         };
     }
 
-    channelId = null;
-    messageId = null;
-
     constructor(server, options) {
         super(server, options);
 
+        this.storage = options.storage;
+
         this.discordClient.once('ready', async () => {
-            this.waitForMessageTrigger();
-            this.setupRefreshInterval();
+            await this.setupDatabase();
+            this.waitForMessageTrigger(server);
+            this.setupRefreshInterval(server);
         });        
     }
-//     const channel = await this.discordClient.channels.fetch(this.channelID);
-            
-//     // await channel.send('test');
-//     // const channel = await this.discordClient.channels.fetch(this.channelID);
-//     const message = await channel.messages.fetch('766649320597487636');
-    
-//     await message.edit('new test');
-// });
-    waitForMessageTrigger() {
-        this.discordClient.on('message', async (message) => {
-            if (message.content === 'toto1') {
-                this.channelId = message.channel.id;
 
-                this.messageId = await this.writeMessageToChannel(message.channel);
+    async setupDatabase() {
+        try {
+            this.storage.authenticate();
+            SquadServer.verbose('Storage authenticated');
+
+            // This dhould be a migration
+            this.DiscordBordcastDestination = this.storage.define('discord_brodcast_destinations', {
+                channelId: DataTypes.STRING,
+                messageId: DataTypes.STRING
+            });
+            await this.storage.sync();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    waitForMessageTrigger(server) {
+        this.discordClient.on('message', async (message) => {
+            if (message.content === '!server') {
+                await this.subscribeDiscordDestination(server, message);
+            } else if (message.content === '!server-stop') {
+                await this.unsubscribeDiscordDestination(message);
             }
         });
     }
 
-    async writeMessageToChannel(channel) {
-        const message = await channel.send("Test");
+    async subscribeDiscordDestination(server, message) {
+        const messageId = await this.writeMessageToChannel(server, message.channel);
+        const brodcast = this.DiscordBordcastDestination.build({ channelId: message.channel.id, messageId: messageId});
+        
+        await brodcast.save();
+    }
+
+    async unsubscribeDiscordDestination(message) {
+        await this.DiscordBordcastDestination.destroy({where: { channelId: message.channel.id }});
+    }
+
+    async writeMessageToChannel(server, channel) {
+        const message = await channel.send(this.buildEmbededMessage(server));
         return message.id;
     }
 
-    setupRefreshInterval() {
+    setupRefreshInterval(server) {
         this.discordClient.setInterval(async () => {
-            if (this.messageId) {
-                const channel = await this.discordClient.channels.fetch(this.channelID);
-                const message = await channel.messages.fetch(this.messageId);
+            this.DiscordBordcastDestination.findAll().then(async (brodcasts) => {
+                brodcasts.every(async (brodcast) => {
+                    try {
+                        const channel = await this.discordClient.channels.fetch(brodcast.channelId);
+                        const message = await channel.messages.fetch(brodcast.messageId);
 
-                await message.edit('Test' + new Date().toString());
-            }
-        }, 3000);
+                        await message.edit(this.buildEmbededMessage(server));
+                    } catch (e) {
+                        if (e.httpStatus === 404) {
+                            await this.DiscordBordcastDestination.destroy({where: { id: brodcast.id}});
+                            SquadServer.verbose('Message or channel not found, deleting the reference');
+                        } else {
+                            console.error(e);
+                        }
+                    }
+                });
+            }).catch((e) => {
+                console.error(e);
+            });
+
+            
+        }, 10000);
     }
+
+    buildPlayerListByTeam(playerArrayMixed) {
+        let playerByTeam = { teamOne: '', teamTwo: '' };
+
+        playerArrayMixed.forEach(player => {
+            player.teamID === '1' ? playerByTeam.teamOne += player.name + '\n' : playerByTeam.teamTwo += player.name + '\n';
+        });
+
+        if (playerByTeam.teamOne.lenght === 0) playerByTeam.teamOne = "<<Empty>>";
+        if (playerByTeam.teamTwo.lenght === 0) playerByTeam.teamTwo = "<<Empty>>";
+
+        return playerByTeam;
+    }
+
+    buildEmbededMessage(server) {
+        let playersCount = '';
+
+        playersCount += `${server.a2sPlayerCount}`;
+        if (server.publicQueue + server.reserveQueue > 0)
+          playersCount += ` (+${server.publicQueue + server.reserveQueue})`;
+    
+        playersCount += ` / ${server.publicSlots}`;
+        if (server.reserveSlots > 0) playersCount += ` (+${server.reserveSlots})`;
+    
+        const playerListByTeam = this.buildPlayerListByTeam(server.players);
+        const fields = [
+          { name: 'Players', value: "```"+`${playersCount}`+"```" },
+          { name: 'Current Layer', value: "```"+`${server.layerHistory[0].layer || 'Unknown'}`+"```", inline: true },
+          { name: 'Next Layer', value: "```"+`${server.nextLayer || 'Unknown'}`+"```", inline: true },
+          { name: 'Join', value: `steam://connect/${server.options.host}:${server.options.queryPort}` },
+          { name: server.layerHistory[0].teamOne.faction, value: "```"+playerListByTeam.teamOne+"```", inline: true },
+          { name: server.layerHistory[0].teamTwo.faction, value: "```"+playerListByTeam.teamTwo+"```", inline: true }
+        ];
+    
+        return {
+          content: '',
+          embed: {
+            title: server.serverName,
+            fields: fields,
+            color: '#C02026',
+            timestamp: new Date().toISOString(),
+            footer: { text: "Shit was made by some famous dude." }
+          }
+        };
+      }
 }
