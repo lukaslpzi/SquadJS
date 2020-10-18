@@ -42,6 +42,7 @@ export default class DiscordServerStatus extends DiscordBasePlugin {
             this.waitForMessageTrigger(server);
             this.setupRefreshInterval(server);
         });        
+        this.sendDiscordMessage();
     }
 
     async setupDatabase() {
@@ -113,14 +114,18 @@ export default class DiscordServerStatus extends DiscordBasePlugin {
     }
 
     buildPlayerListByTeam(playerArrayMixed) {
-        let playerByTeam = { teamOne: '', teamTwo: '' };
+        let playerByTeam = { teamOne: '', teamTwo: '', teamOneCount: 0, teamTwoCount: 0 };
 
         playerArrayMixed.forEach(player => {
-            player.teamID === '1' ? playerByTeam.teamOne += player.name + '\n' : playerByTeam.teamTwo += player.name + '\n';
-        });
+            if (player.teamID === '1') {
+                playerByTeam.teamOne += player.name + '\n';
+                playerByTeam.teamOneCount++;
+            } else {
+                playerByTeam.teamTwo += player.name + '\n';
+                playerByTeam.teamTwoCount++;
+            }
 
-        if (playerByTeam.teamOne.lenght === 0) playerByTeam.teamOne = "<<Empty>>";
-        if (playerByTeam.teamTwo.lenght === 0) playerByTeam.teamTwo = "<<Empty>>";
+        });
 
         return playerByTeam;
     }
@@ -141,8 +146,8 @@ export default class DiscordServerStatus extends DiscordBasePlugin {
           { name: 'Current Layer', value: "```"+`${server.layerHistory[0].layer || 'Unknown'}`+"```", inline: true },
           { name: 'Next Layer', value: "```"+`${server.nextLayer || 'Unknown'}`+"```", inline: true },
           { name: 'Join', value: `steam://connect/${server.options.host}:${server.options.queryPort}` },
-          { name: server.layerHistory[0].teamOne.faction, value: "```"+playerListByTeam.teamOne+"```", inline: true },
-          { name: server.layerHistory[0].teamTwo.faction, value: "```"+playerListByTeam.teamTwo+"```", inline: true }
+          { name: `${server.layerHistory[0].teamOne.faction}  (${playerListByTeam.teamOneCount} players)`, value: "```"+playerListByTeam.teamOne+"```", inline: true },
+          { name: `${server.layerHistory[0].teamTwo.faction}  (${playerListByTeam.teamTwoCount} players)`, value: "```"+playerListByTeam.teamTwo+"```", inline: true }
         ];
     
         return {
