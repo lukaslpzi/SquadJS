@@ -1,5 +1,5 @@
-import { DataTypes } from "sequelize/types";
-import DiscordBasePlugin from "./discord-base-plugin";
+import DataTypes from "sequelize";
+import DiscordBasePlugin from "./discord-base-plugin.js";
 
 export default class DiscordIntervalUpdatedMessage extends DiscordBasePlugin {
     static get description() {
@@ -9,7 +9,8 @@ export default class DiscordIntervalUpdatedMessage extends DiscordBasePlugin {
     static get optionsSpecification() {
         return {
             discordClient: {
-                connector: 'discord'
+                connector: 'discord',
+                default: 'discord'
             },
             subscribeMessage: {
                 default: '!start'
@@ -21,7 +22,8 @@ export default class DiscordIntervalUpdatedMessage extends DiscordBasePlugin {
                 default: 300
             },
             storage: {
-                connector: 'databaseClient'
+                connector: 'databaseClient',
+                default: 'sqlite'
             }
         };
     }
@@ -31,6 +33,8 @@ export default class DiscordIntervalUpdatedMessage extends DiscordBasePlugin {
 
         this.subscribeMessage = options.subscribeMessage;
         this.unsubscribeMessage = options.unsubscribeMessage;
+        this.interval = options.interval;
+        this.storage = options.storage;
 
         this.discordClient.once('ready', async () => {
             await this.setupDatabase();
@@ -42,12 +46,13 @@ export default class DiscordIntervalUpdatedMessage extends DiscordBasePlugin {
     async setupDatabase() {
         try {
             const tableName = this.__proto__.constructor.name + '_DiscordIntervalUpdateMessage'
-            this.storage.authentucate();
+            this.storage.authenticate();
             this.DiscordBrodcastDestination = this.storage.define(tableName,
             { channelId: DataTypes.STRING, messageId: DataTypes.STRING });
             await this.storage.sync();
+            
         } catch (e) {
-
+            console.error(e);
         }
     }
 
@@ -78,18 +83,18 @@ export default class DiscordIntervalUpdatedMessage extends DiscordBasePlugin {
                         }
                     }
                 });
-            });
-        });
+            }).catch((e) => console.error(e));
+        }, this.interval * 1000);
     }
 
     async subscribeDiscordDesination(server, channel) {
-        const message = await this.writeMessageToChannel(server, channel);
+        const messageId = await this.writeMessageToChannel(server, channel);
         const brodcast = this.DiscordBrodcastDestination.build(
-            { channelId: channel.id, messageId: message.id });
+            { channelId: channel.id, messageId: messageId });
         await brodcast.save();
     }
 
-    writeMessageToChannel(server, channel) {
+    async writeMessageToChannel(server, channel) {
         const message = await channel.send(this.buildMessage(server));
         return message.id;
     }

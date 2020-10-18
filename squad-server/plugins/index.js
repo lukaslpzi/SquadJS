@@ -9,6 +9,7 @@ import DiscordSubsystemRestarter from './discord-subsystem-restarter.js';
 import IntervalledBroadcasts from './intervalled-broadcasts.js';
 import SeedingMode from './seeding-mode.js';
 import DiscordServerStatus from './discord-server-status.js';
+import DiscordPlayersList from './discord-players-list.js';
 
 const plugins = [
   AutoTKWarn,
@@ -21,7 +22,8 @@ const plugins = [
   DiscordSubsystemRestarter,
   IntervalledBroadcasts,
   SeedingMode,
-  DiscordServerStatus
+  DiscordServerStatus,
+  DiscordPlayersList
 ];
 
 const pluginsByName = {};
