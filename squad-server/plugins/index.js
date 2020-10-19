@@ -10,6 +10,7 @@ import IntervalledBroadcasts from './intervalled-broadcasts.js';
 import SeedingMode from './seeding-mode.js';
 import DiscordServerStatus from './discord-server-status.js';
 import DiscordPlayersList from './discord-players-list.js';
+import DiscordServerLayerImages from './discord-server-layer-images.js';
 
 const plugins = [
   AutoTKWarn,
@@ -23,7 +24,8 @@ const plugins = [
   IntervalledBroadcasts,
   SeedingMode,
   DiscordServerStatus,
-  DiscordPlayersList
+  DiscordPlayersList,
+  DiscordServerLayerImages
 ];
 
 const pluginsByName = {};

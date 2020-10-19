@@ -2,26 +2,24 @@ import DataTypes from "sequelize";
 import DiscordBasePlugin from "./discord-base-plugin.js";
 
 export default class DiscordIntervalUpdatedMessage extends DiscordBasePlugin {
-    static get description() {
-        return ('dont instanciate me plox');
-    }
 
     static get optionsSpecification() {
         return {
-            discordClient: {
-                connector: 'discord',
-                default: 'discord'
-            },
+            ... super.optionsSpecification,
             subscribeMessage: {
+                description: 'Trigger message to start the broadcast on the channel',
                 default: '!start'
             },
             unsubscribeMessage: {
+                description: 'Trigger message to stop the broadcast on this channel',
                 default: '!stop'
             },
             interval: {
+                description: 'Update interval in seconds',
                 default: 300
             },
             storage: {
+                description: 'Storrage connector name',
                 connector: 'databaseClient',
                 default: 'sqlite'
             }

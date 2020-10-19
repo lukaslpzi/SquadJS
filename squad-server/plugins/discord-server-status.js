@@ -8,11 +8,19 @@ export default class DiscordServerStatus extends DiscordIntervalUpdatedMessage {
       }
 
     static get optionsSpecification() {
-        return super.optionsSpecification;
+      return {
+        ...super.optionsSpecification,
+        accentColor: {
+          description: "Color to use on small stuff to make things look cool",
+          default: '#FFFFFF'
+        }
+      }
     }
 
     constructor(server, options) {
-        super(server, options);
+      super(server, options)
+
+      this.accentColor = options.accentColor;
     }
 
     buildMessage(server) {
@@ -37,7 +45,7 @@ export default class DiscordServerStatus extends DiscordIntervalUpdatedMessage {
           embed: {
             title: server.serverName,
             fields: fields,
-            color: '#C02026',
+            color: this.accentColor,
             timestamp: new Date().toISOString(),
             footer: { text: "Shit was made by some famous dude." }
           }
