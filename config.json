@@ -20,7 +20,8 @@
       "password": "bobs-secret",
       "server": {
         "dialect": "sqlite",
-        "storage": "/path/to/database/if/local.db"
+        "storage": "/path/to/database/if/local.db",
+        "logging": false
       }
     },
     "squadlayerpool": {

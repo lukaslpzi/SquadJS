@@ -31,6 +31,9 @@ export default class DiscordPlayersList extends DiscordIntervalUpdatedMessage {
             }
         });
 
+        if (playerByTeam.teamOneCount === 0) playerByTeam.teamOne = 'Empty';
+        if (playerByTeam.teamTwoCount === 0) playerByTeam.teamTwo = 'Empty';
+
         return playerByTeam;
     }
 
