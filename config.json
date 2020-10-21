@@ -15,13 +15,14 @@
   "connectors": {
     "discord": "Discord Login Token",
     "sqlite": {
-      "database": "database-name",
+      "database": "databasename",
       "user": "bob",
       "password": "bobs-secret",
       "server": {
+        "host": "hos-if-you-have-remote-database",
         "dialect": "sqlite",
-        "storage": "/path/to/database/if/local.db",
-        "logging": false
+        "logging": false,
+        "storage": "path/to/database"
       }
     },
     "squadlayerpool": {
@@ -154,6 +155,28 @@
       "liveEnabled": true,
       "liveThreshold": 52,
       "liveMessage": "Live!"
+    },
+    {
+      "plugin": "DiscordServerStatus",
+      "enabled": false,
+      "discordClient": "discord",
+      "subscribeMessage": "!start",
+      "unsubscribeMessage": "!stop",
+      "interval": 300,
+      "storage": "sqlite",
+      "accentColor": "#FFFFFF",
+      "displayCurrentLayerImage": false,
+      "displayNextLayerThumbnail": false
+    },
+    {
+      "plugin": "DiscordPlayersList",
+      "enabled": false,
+      "discordClient": "discord",
+      "subscribeMessage": "!start",
+      "unsubscribeMessage": "!stop",
+      "interval": 300,
+      "storage": "sqlite",
+      "accentColor": "#FFFFFF"
     }
   ]
 }

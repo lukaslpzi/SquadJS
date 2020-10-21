@@ -19,14 +19,14 @@
   "connectors": {
     "discord": "Discord Login Token",
     "sqlite": {
-      "database": "",
-      "user": "",
-      "password": "",
+      "database": "databasename",
+      "user": "bob",
+      "password": "bobs-secret",
       "server": {
-        "host": "",
+        "host": "hos-if-you-have-remote-database",
         "dialect": "sqlite",
         "logging": false,
-        "storage": "database.sqlite"
+        "storage": "path/to/database"
       }
     },
     "squadlayerpool": {

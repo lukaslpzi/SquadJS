@@ -2,10 +2,15 @@ import DiscordIntervalUpdatedMessage from "./discord-interval-updated-message.js
 
 export default class DiscordServerStatus extends DiscordIntervalUpdatedMessage {
     static get description() {
-        return (
-          '<code>DiscordServerStatus</code>'
-        );
-      }
+      return (
+        '<code>DiscordServerStatus</code> discord plugin showing server information when called. It will update it\'s information on set delay.\
+        Side accent color can be changed, current layer image can be displayed under and next layer image as a thumbnail.'
+      );
+    }
+
+    static get defaultEnabled() {
+      return false;
+    }
 
     static get optionsSpecification() {
       return {
@@ -37,9 +42,7 @@ export default class DiscordServerStatus extends DiscordIntervalUpdatedMessage {
 
       return {
         image: {
-          url: currentLayerUrl,
-          height: 100,
-          width: 100
+          url: currentLayerUrl, height: 100, width: 100
         }
       }
     }
@@ -49,15 +52,14 @@ export default class DiscordServerStatus extends DiscordIntervalUpdatedMessage {
 
       return {
         thumbnail: {
-          url: nextLayerUrl,
-          height: 20,
-          width: 20
+          url: nextLayerUrl, height: 20, width: 20
         }
       }
     }
 
     layerNameToSquadWikiImageName(layerName) {
       if (!layerName) return '';
+      // TODO: This should be generalised when future DLC arives
       if (layerName.includes('CAF')) layerName = layerName.replace(/CAF( |_)/, '') + ' CAF';
       return layerName.replace(/ /g, '_').replace('_v', '_V');
     }
@@ -66,7 +68,6 @@ export default class DiscordServerStatus extends DiscordIntervalUpdatedMessage {
 
       let playersCount = '';
 
-      // TODO: Simplify ?
       playersCount += `${server.a2sPlayerCount}`;
       if (server.publicQueue + server.reserveQueue > 0)
         playersCount += ` (+${server.publicQueue + server.reserveQueue})`;

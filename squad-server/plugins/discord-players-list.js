@@ -1,6 +1,17 @@
 import DiscordIntervalUpdatedMessage from "./discord-interval-updated-message.js";
 
 export default class DiscordPlayersList extends DiscordIntervalUpdatedMessage {
+
+    TEAM_ONE_ID = '1';
+
+    static get description() {
+        return '<code>DiscordPlayerList</code> is a discord plugin displaying players currentley in each team. Two columns, each named by theyr fraction shorctcut.\
+        Side accent color can be modified.'
+    }
+
+    static get defaultEnabled() {
+        return false;
+    }
     
     static get optionsSpecification() {
         return {
@@ -22,7 +33,7 @@ export default class DiscordPlayersList extends DiscordIntervalUpdatedMessage {
         let playerByTeam = { teamOne: '', teamTwo: '', teamOneCount: 0, teamTwoCount: 0 };
 
         playerArrayMixed.forEach(player => {
-            if (player.teamID === '1') {
+            if (player.teamID === this.TEAM_ONE_ID) {
                 playerByTeam.teamOne += player.name + '\n';
                 playerByTeam.teamOneCount++;
             } else {
